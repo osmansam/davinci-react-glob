@@ -1,8 +1,8 @@
 import React from "react";
 import { IoIosClose } from "react-icons/io";
+import { GenericButton } from "../../../common/GenericButton";
 import { useGeneralContext } from "../../../context/General.context";
 import type { FormElementsState, OptionType } from "../../../types";
-import { GenericButton } from "../../common/GenericButton";
 import { H6 } from "../Typography";
 
 interface TabInputProps {
@@ -101,7 +101,7 @@ const TabInput: React.FC<TabInputProps> = ({
                 <GenericButton
                   key={opt.value}
                   type="button"
-                  onClick={(e) => {
+                  onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
                     e.stopPropagation();
                     handleSelect(opt);
                   }}
@@ -127,7 +127,7 @@ const TabInput: React.FC<TabInputProps> = ({
             <span className="flex-1 text-gray-800">{value.label}</span>
             {!isReadOnly && onClear && (
               <GenericButton
-                onClick={(e) => {
+                onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
                   e.stopPropagation();
                   onClear();
                 }}

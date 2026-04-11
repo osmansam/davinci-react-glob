@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import type { MultiValue, SingleValue } from "react-select";
+import { GenericButton } from "../../../common/GenericButton";
 import type { OptionType } from "../../../types";
-import { GenericButton } from "../../common/GenericButton";
 import { H6 } from "../Typography";
 import SelectInput from "./SelectInput";
 

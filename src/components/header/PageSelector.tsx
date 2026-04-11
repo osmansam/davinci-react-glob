@@ -8,6 +8,7 @@ import {
 import { useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import Cookies from "js-cookie";
+import type { ComponentType, MouseEvent as ReactMouseEvent } from "react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { FiChevronDown, FiChevronRight } from "react-icons/fi";
@@ -23,6 +24,9 @@ import { useGetPanelControlPages } from "../../utils/api/panelControl/page";
 import { useGetUser } from "../../utils/api/user";
 import { clearLocalStoragePreservingOnboarding } from "../../utils/onboardingStorage";
 
+const MenuListComponent = MenuList as unknown as ComponentType<any>;
+const MenuItemComponent = MenuItem as unknown as ComponentType<any>;
+
 export function PageSelector() {
   const navigate = useNavigate();
   const { t } = useTranslation();
@@ -34,7 +38,7 @@ export function PageSelector() {
   const { resetGeneralContext, setIsNotificationOpen, setIsLogoutModalOpen } =
     useGeneralContext();
   const [openGroups, setOpenGroups] = useState<{ [group: string]: boolean }>(
-    {}
+    {},
   );
 
   const routes = useFilteredRoutes();
@@ -49,14 +53,14 @@ export function PageSelector() {
     (breakRecord) =>
       (typeof breakRecord.user === "string"
         ? breakRecord.user
-        : breakRecord.user._id) === user?._id && !breakRecord.finishHour
+        : breakRecord.user._id) === user?._id && !breakRecord.finishHour,
   );
 
   const userActiveGameplayTime = activeGameplayTimes?.find(
     (gameplayTime) =>
       (typeof gameplayTime.user === "string"
         ? gameplayTime.user
-        : gameplayTime.user._id) === user?._id && !gameplayTime.finishHour
+        : gameplayTime.user._id) === user?._id && !gameplayTime.finishHour,
   );
 
   const hasActiveSession = userActiveBreak || userActiveGameplayTime;
@@ -96,7 +100,7 @@ export function PageSelector() {
           />
         </button>
       </MenuHandler>
-      <MenuList className="overflow-scroll no-scrollbar h-[95%] max-h-max">
+      <MenuListComponent className="overflow-scroll no-scrollbar h-[95%] max-h-max">
         {routes.map((route) => {
           const filteredRouteChildren = route?.children?.filter(
             (child) =>
@@ -104,15 +108,15 @@ export function PageSelector() {
               pages?.some(
                 (page) =>
                   page.name === child.name &&
-                  page.permissionRoles?.includes((user?.role as Role)?._id)
-              )
+                  page.permissionRoles?.includes((user?.role as Role)?._id),
+              ),
           );
           if (filteredRouteChildren && filteredRouteChildren?.length > 1) {
             return (
               <div key={route.name}>
-                <MenuItem
+                <MenuItemComponent
                   className="group flex items-center justify-between cursor-pointer hover:bg-gray-100"
-                  onClick={(e) => {
+                  onClick={(e: ReactMouseEvent<HTMLElement>) => {
                     e.stopPropagation();
                     toggleGroup(route.name);
                   }}
@@ -123,13 +127,13 @@ export function PageSelector() {
                   ) : (
                     <FiChevronRight className="text-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
                   )}
-                </MenuItem>
+                </MenuItemComponent>
 
                 {openGroups[route.name] &&
                   filteredRouteChildren
                     .filter((child) => child.isOnSidebar)
                     .map((child) => (
-                      <MenuItem
+                      <MenuItemComponent
                         key={child.name}
                         className={`pl-6 ${
                           child.path === currentRoute
@@ -154,7 +158,7 @@ export function PageSelector() {
                         }}
                       >
                         {t(child.name)}
-                      </MenuItem>
+                      </MenuItemComponent>
                     ))}
               </div>
             );
@@ -164,7 +168,7 @@ export function PageSelector() {
           ) {
             if (!filteredRouteChildren[0].isOnSidebar) return null;
             return (
-              <MenuItem
+              <MenuItemComponent
                 key={filteredRouteChildren[0].name}
                 className={`${
                   filteredRouteChildren[0].path === currentRoute
@@ -187,12 +191,12 @@ export function PageSelector() {
                 }}
               >
                 {t(filteredRouteChildren[0].name)}
-              </MenuItem>
+              </MenuItemComponent>
             );
           } else {
             if (!route.isOnSidebar) return null;
             return (
-              <MenuItem
+              <MenuItemComponent
                 key={route.name}
                 className={`${
                   route.path === currentRoute ? "bg-gray-100 text-black" : ""
@@ -214,19 +218,19 @@ export function PageSelector() {
                 }}
               >
                 {t(route.name)}
-              </MenuItem>
+              </MenuItemComponent>
             );
           }
         })}
 
-        <MenuItem
+        <MenuItemComponent
           className="flex flex-row gap-2 items-center"
           onClick={handleLogoutClick}
         >
           <IoIosLogOut className="text-lg" />
           {t("Logout")}
-        </MenuItem>
-      </MenuList>
+        </MenuItemComponent>
+      </MenuListComponent>
     </Menu>
   );
 }
