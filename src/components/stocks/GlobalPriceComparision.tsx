@@ -1,9 +1,10 @@
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
+import type { PriceComparePriceEntry } from "../../utils/api/priceCompare";
 import { useGetGlobalPriceCompareHashmap } from "../../utils/api/priceCompare";
 import GenericTable from "../panelComponents/Tables/GenericTable";
 
-type PriceCompareRow = {
+type PriceCompareRow = Record<string, unknown> & {
   key: string;
   name: string;
   bestSite: string;
@@ -11,7 +12,7 @@ type PriceCompareRow = {
   maxPrice: number;
   priceGap: number;
   availableSiteCount: number;
-  [siteKey: string]: string | number;
+  outOfStockSites: Record<string, boolean>;
 };
 
 const PRICE_DECIMALS = 2;
@@ -19,6 +20,24 @@ const PRICE_DECIMALS = 2;
 const toLabelFromKey = (siteKey: string) => {
   if (!siteKey) return "-";
   return siteKey.charAt(0).toUpperCase() + siteKey.slice(1);
+};
+
+const getPriceDetails = (entry: PriceComparePriceEntry | undefined) => {
+  if (typeof entry === "number") {
+    return {
+      price: entry,
+      isOutOfStock: false,
+    };
+  }
+
+  if (entry && typeof entry.price === "number") {
+    return {
+      price: entry.price,
+      isOutOfStock: entry.remainingStock <= 0,
+    };
+  }
+
+  return null;
 };
 
 const GlobalPriceComparision = () => {
@@ -57,12 +76,17 @@ const GlobalPriceComparision = () => {
       let availableSiteCount = 0;
 
       const sitePriceMap: Record<string, string | number> = {};
+      const outOfStockSites: Record<string, boolean> = {};
 
       siteEntries.forEach(([siteKey, siteLabel]) => {
         const rawPrice = item.prices[siteKey];
-        if (typeof rawPrice === "number") {
-          const normalizedPrice = Number(rawPrice.toFixed(PRICE_DECIMALS));
+        const priceDetails = getPriceDetails(rawPrice);
+        if (priceDetails) {
+          const normalizedPrice = Number(
+            priceDetails.price.toFixed(PRICE_DECIMALS),
+          );
           sitePriceMap[siteKey] = normalizedPrice;
+          outOfStockSites[siteKey] = priceDetails.isOutOfStock;
           availableSiteCount += 1;
 
           if (normalizedPrice < minPrice) {
@@ -75,6 +99,7 @@ const GlobalPriceComparision = () => {
           }
         } else {
           sitePriceMap[siteKey] = "-";
+          outOfStockSites[siteKey] = false;
         }
       });
 
@@ -84,6 +109,7 @@ const GlobalPriceComparision = () => {
         key: itemKey,
         name: item.name,
         ...sitePriceMap,
+        outOfStockSites,
         bestSite,
         minPrice: hasAnyPrice ? Number(minPrice.toFixed(PRICE_DECIMALS)) : 0,
         maxPrice: hasAnyPrice ? Number(maxPrice.toFixed(PRICE_DECIMALS)) : 0,
@@ -113,7 +139,29 @@ const GlobalPriceComparision = () => {
   const rowKeys = useMemo(() => {
     return [
       { key: "name" },
-      ...siteEntries.map(([siteKey]) => ({ key: siteKey })),
+      ...siteEntries.map(([siteKey]) => ({
+        key: siteKey,
+        node: (row: PriceCompareRow) => {
+          const value = row[siteKey];
+          const isOutOfStock = row.outOfStockSites[siteKey];
+
+          if (value === undefined || value === null || value === "") {
+            return "-";
+          }
+
+          return (
+            <span
+              className={
+                isOutOfStock
+                  ? "inline-flex w-fit rounded-md bg-red-600 px-2 py-1 font-semibold text-white"
+                  : ""
+              }
+            >
+              {String(value)}
+            </span>
+          );
+        },
+      })),
       { key: "bestSite" },
       { key: "minPrice" },
       { key: "maxPrice" },

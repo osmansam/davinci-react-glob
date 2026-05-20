@@ -2,9 +2,16 @@ import { Paths, useGet } from "./factory";
 
 export type PriceCompareSites = Record<string, string>;
 
+export type PriceComparePriceEntry =
+  | number
+  | {
+      price: number;
+      remainingStock: number;
+    };
+
 export interface PriceCompareItem {
   name: string;
-  prices: Record<string, number>;
+  prices: Record<string, PriceComparePriceEntry>;
 }
 
 export interface PriceCompareHashmapResponse {
